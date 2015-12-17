@@ -1,0 +1,257 @@
+<meta name="viewport" content="width=device-width, user-scalable=no">
+<script src="fastclick.js"></script>
+<style>
+html, body {
+  overflow-x: hidden;
+}
+*.unselectable {
+   -moz-user-select: -moz-none;
+   -khtml-user-select: none;
+   -webkit-user-select: none;
+
+   /*
+     Introduced in IE 10.
+     See http://ie.microsoft.com/testdrive/HTML5/msUserSelect/
+   */
+   -ms-user-select: none;
+   user-select: none;
+}
+</style>
+
+
+<script type="application/javascript">
+    var SPRITE_WIDTH = 300, SPRITE_HEIGHT = 300;
+    var map = {
+        obj: [
+            {player:1,
+             anim:"egg",
+             pos:[1,1]
+            }
+        ]
+    };
+    
+    var animation = {
+        "egg": [1,9],
+        "egg-slime": [10, 15],
+        "slime": [15,34],
+        "slime-gatherer": [35,42],
+        "gatherer": [43, 67],
+        "slime-queen": [68,77],
+        "queen": [78,90],
+        "slime-warrior": [91, 95],
+        "warrior": [96, 102],
+        "slime-archer": [103, 112],
+        "archer": [113, 131],
+        "warrior-leader": [132, 142],
+        "leader": [142, 154],
+        "slime-flyer": [155, 173],
+        "flyer": [174, 183]
+    };
+    
+    var select_anim = {
+        1: [1,4],
+        2: [5,8],
+        3: [9,12],
+        4: [13,16],
+    };
+    
+    var actions = {
+        egg: {
+            "Hatch": {
+                cost: 50,
+                transform: {
+                    animation: "egg-slime",
+                    order: 1
+                },
+                nextAnim: "slime"
+            }
+        },
+        slime: {
+            "Grow": {
+                cost: 50,
+                transform: {
+                    animation: "slime-gatherer",
+                    order: 1
+                },
+                nextAnim: "gatherer"
+            },
+            "Train" : {
+                cost: 100,
+                transform: {
+                    animation: "slime-warrior",
+                    order: 1
+                },
+                nextAnim: "warrior"
+            }
+        }
+    };
+    
+    var imgs = [];
+    var selects = [];
+    var frame = 0;
+    var hotSpot = [152,278];
+    var zoom = .25;
+    
+    var players = [
+        {id: 1, human:true, keys:[39,40]},
+        {id: 2},
+        {id: 3},
+        {id: 4}
+    ];
+    
+	window.addEventListener('load', function() {
+		FastClick.attach(document.body);
+        
+        var loadCount = 2;
+        loadImages(imgs, 183, "animation/slimecraft{1}.png",
+            function() {
+                loadCount--;
+                if(!loadCount) {
+                    onLoadedAll();
+                }
+        });
+        
+        loadImages(selects, 16, "animation/select{1}.png",
+            function() {
+                loadCount--;
+                if(!loadCount) {
+                    onLoadedAll();
+                }
+        });
+        
+	}, false);
+
+function loadImages(imgs, count, filename, callback) {
+    var loadCount = count;
+    for(var index = 1; index <= count; index++) {
+        var src = filename.split("{1}").join((10000 + index).toString().substr(1));
+        var img = new Image();
+        imgs[index] = img;
+        loadImage(img, src,
+            function(e) {
+                loadCount--;
+                if(loadCount==0) {
+                    callback();
+                }
+        });
+    }
+}
+    
+function onLoadedAll(e) {
+    setInterval(refresh,100);
+}
+    
+function loadImage(img, src, callback) {
+    img.src = src;
+    img.addEventListener("load",callback);
+}       
+        
+document.addEventListener('mousedown',
+    function() {
+        document.body.style.backgroundColor = "yellow";
+    });
+
+document.addEventListener('mouseup',
+     function() {
+        document.body.style.backgroundColor = "";
+     });
+
+function refresh() {
+    frame++;
+    renderMap(map);
+}
+    
+function nextSelect(selection) {
+    var player = -1;
+    for(var i=0; i< map.obj.length;i++) {
+        var obj = map.obj[i];
+        if (player<0) {
+            if (obj.id==selection) {
+                player = obj.player;
+            }
+        } else if(obj.player==player) {
+            return obj.id;
+        }
+    }
+    return player>=0 ? firstSelect(player) : null;
+}
+    
+function firstSelect(player) {
+    for(var i=0; i< map.obj.length;i++) {
+        var obj = map.obj[i];
+        if (obj.player==player) {
+            return obj.id;
+        }
+    }
+    return null;
+}
+    
+function renderMap(map) {
+    for(var i=0; i< map.obj.length;i++) {
+        var obj = map.obj[i];
+        if(!obj.id) {
+            obj.id = ""+Math.random();
+            obj.animIndex = frame % animation[obj.anim].length;
+        }
+        setSprite(obj.id, animation[obj.anim], obj.pos[0], obj.pos[1], imgs);
+        for(var p=0;p<players.length;p++) {
+            var player = players[p];
+            if(player.select && player.select==obj.id) {
+                setSprite("select_"+player.id, select_anim[player.id], obj.pos[0], obj.pos[1], selects);
+            }
+        }
+    }
+}
+    
+function setSprite(id, anim, x, y, anim_array) {
+    var img = document.getElementById(id);
+    if(!img) {
+        var img = new Image();
+        img.id = id;
+        img.style.width = (SPRITE_WIDTH*zoom) + "px";
+        img.style.height = (SPRITE_HEIGHT*zoom) + "px";
+        img.style.position = "absolute";
+        document.getElementById("layer").appendChild(img);
+    }
+    var animStart = anim[0];
+    var animEnd = anim[1];
+    var animCount = animEnd - animStart;
+    var imageFrame = animStart + (frame % animCount);
+    img.src = anim_array[imageFrame].src;
+    var posX = (x*100 - hotSpot[0]*zoom);
+    var posY = (y*100 - hotSpot[1]*zoom);
+    img.style.posLeft = img.style.left = posX + "px";
+    img.style.posTop = img.style.top = posY + "px";
+}
+    
+document.ontouchstart = function(e){ 
+    document.body.style.backgroundColor = "yellow";
+    e.preventDefault(); 
+}
+
+document.ontouchend = function(e){
+     document.body.style.backgroundColor = "";
+}
+
+document.addEventListener("keydown",function(e) {
+    for(var i=0; i<players.length;i++) {
+        if (players[i] && players[i].keys) {
+            if(e.keyCode == players[i].keys[0]) {
+                players[i].select = players[i].select ? nextSelect(players[i].select) : firstSelect(players[i].id);
+            } else if(e.keyCode == players[i].keys[1]) {
+            }
+        }
+    }
+    console.log(e.keyCode);
+});
+</script>
+
+<html>
+<body unselectable="on" class="unselectable">
+    <div id="layer">
+    </div>
+</body>
+</html>
+
+
+
