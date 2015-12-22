@@ -23,15 +23,17 @@
 		}
 		
 		public function show(state:String):void {
-			active = true;
-			visible = playerSetting.ai == 0;
-			gotoAndPlay(1);
-			zicon.gotoAndStop(state);
-			var switcher:ActionSwitch = zicon[zicon.currentLabel + "Switcher"];
-			switcher.gotoAndStop(1);
-			addEventListener(Event.ENTER_FRAME,updateCoster);
-			moreVegetables.visible = false;
-			moreQueens.visible = false;
+			if(state!="KO") {
+				active = true;
+				visible = playerSetting.ai == 0;
+				gotoAndPlay(1);
+				zicon.gotoAndStop(state);
+				var switcher:ActionSwitch = zicon[zicon.currentLabel + "Switcher"];
+				switcher.gotoAndStop(1);
+				addEventListener(Event.ENTER_FRAME,updateCoster);
+				moreVegetables.visible = false;
+				moreQueens.visible = false;
+			}
 		}
 		
 		public function hide():void {

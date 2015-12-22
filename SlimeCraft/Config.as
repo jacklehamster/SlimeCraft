@@ -147,6 +147,12 @@
 			[0,40],
 			[40,40]
 		];
+		
+		
+		static public const UNCOLORED:Object = {
+			"Carrot":true,
+			"Heart":true
+		};
 	}
 	
 }

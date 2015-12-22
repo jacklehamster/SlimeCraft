@@ -63,11 +63,13 @@
 			var child:Slimo = SetSprite(unit.id, Slimo, unit.x, unit.y) as Slimo;
 			child.update(unit.state,0, unit.frameOrigin);
 			child.transformation = unit.transformation;
+			child.player = Config.UNCOLORED[child.state] ? 0 : unit.player;
 			if(unit.state=="KO" || unit.transformation) {
 				child.progressbar.visible = false;
 			} else if(unit.life < unit.MAXLIFE) {
 				child.progressbar.progress = unit.life / unit.MAXLIFE;
 			}
+			child.forceRefresh();
 		}
 		
 		public function selectUnit(unit:UnitElement):void {
@@ -135,7 +137,7 @@
 				if(playerSetting.selection==unit.id && playerSetting.ai==0) {
 					selectUnit(unit);
 				} else if(unit.attackingPlayer) {
-					markUnit(unit, addedElems);
+					//markUnit(unit, addedElems);
 				}
 			}
 			if(!addedElems[playerSetting.selection]) {

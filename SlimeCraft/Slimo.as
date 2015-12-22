@@ -25,6 +25,15 @@
 		public var transformation:String;
 		public var updatedTime:int;
 		public var frameOrigin:int;
+		private var _player:int;
+		
+		public function set player(value:int):void {
+			_player = value;
+		}
+		
+		public function get player():int {
+			return _player;
+		}
 		
 		override protected function refresh():void {
 			var frames:Array = frameStructure[transformation ? transformation : state];
@@ -44,6 +53,10 @@
 			this.state = state;
 			this.updatedTime = updatedTime;
 			this.frameOrigin = frameOrigin;
+		}
+		
+		public function forceRefresh():void {
+			refresh();
 		}
 	}
 	
